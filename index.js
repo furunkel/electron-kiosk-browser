@@ -1,5 +1,6 @@
 var app  = require('app')
 var BrowserWindow = require('browser-window')
+var config = require('./config.js')
 
 var mainWindow = null
 
@@ -10,8 +11,12 @@ app.on('window-all-closed', function() {
 })
 
 app.on('ready', function () {
-  mainWindow = new BrowserWindow({ width: 1030, height: 720, frame: false })
-  mainWindow.loadUrl('file://' + require('path').join(__dirname, 'browser.html'))
+  mainWindow = new BrowserWindow({ width: config.windowWidth,
+                                   height: config.windowHeight,
+                                   frame: false,
+                                   fullscreen: true,
+                                   kiosk: true})
+  mainWindow.loadURL('file://' + require('path').join(__dirname, 'browser.html'))
   mainWindow.on('closed', function() {
     mainWindow = null
   })

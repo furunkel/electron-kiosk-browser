@@ -4,10 +4,11 @@ var Menu = remote.require('menu')
 var MenuItem = remote.require('menu-item')
 var clipboard = require('clipboard')
 var urllib = require('url')
+var config = require('./config')
 
 function createPageObject (location) {
   return {
-    location: location||'https://github.com/pfraze/electron-browser',
+    location: location || config.homeUrl,
     statusText: false,
     title: 'new tab',
     isLoading: false,
@@ -40,7 +41,7 @@ var BrowserChrome = React.createClass({
     // :TODO: replace this with menu hotkeys
     var self = this
     document.body.addEventListener('keydown', function (e) {
-      if (e.metaKey && e.keyCode == 70) { // cmd+f
+      if ((e.ctrlKey || e.metaKey) && e.keyCode == 70) { // cmd+f
         // start search
         self.getPageObject().isSearching = true
         self.setState(self.state)
@@ -72,10 +73,17 @@ var BrowserChrome = React.createClass({
     this.state.pages.push(createPageObject(location))
     this.setState({ pages: this.state.pages, currentPageIndex: this.state.pages.length - 1 })
   },
+  logOut: function () {
+    var page = createPageObject();
+    var state = this.setState({ pages: [page], currentPageIndex: 0})
+    this.getPage().navigateTo(config.logOutUrl || page.location)
+    return state
+  },
   closeTab: function (pageIndex) {
     // last tab, full reset
-    if (this.state.pages.filter(Boolean).length == 1)
-      return this.setState({ pages: [createPageObject()], currentPageIndex: 0 })
+    if (this.state.pages.filter(Boolean).length == 1) {
+      return this.logOut()
+    }
 
     this.state.pages[pageIndex] = null
     this.setState({ pages: this.state.pages })
@@ -131,15 +139,12 @@ var BrowserChrome = React.createClass({
       menu.append(new MenuItem({ label: 'Copy Link Address', click: function () { clipboard.writeText(e.href) } }))
     }
     if (e.img) {
-      menu.append(new MenuItem({ label: 'Save Image As...', click: function () { alert('todo') } }))
       menu.append(new MenuItem({ label: 'Copy Image URL', click: function () { clipboard.writeText(e.img) } }))
       menu.append(new MenuItem({ label: 'Open Image in New Tab', click: function () { self.createTab(e.img) } }))
     }
     if (e.hasSelection)
       menu.append(new MenuItem({ label: 'Copy', click: function () { self.getWebView().copy() } }))
     menu.append(new MenuItem({ label: 'Select All', click: function () { self.getWebView().selectAll() } }))
-    menu.append(new MenuItem({ type: 'separator' }))
-    menu.append(new MenuItem({ label: 'Inspect Element', click: function() { self.getWebView().inspectElement(e.x, e.y) } }))
     menu.popup(remote.getCurrentWindow())
   },
 
@@ -182,6 +187,9 @@ var BrowserChrome = React.createClass({
     },
     onClickRefresh: function () {
       this.getWebView().reload()
+    },
+    onClickLogOut: function () {
+      this.logOut()
     },
     onClickBundles: function () {
       var location = urllib.parse(this.getWebView().getUrl()).path
