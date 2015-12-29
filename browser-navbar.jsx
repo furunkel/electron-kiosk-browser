@@ -34,6 +34,7 @@ var BrowserNavbar = React.createClass({
       <BrowserNavbarBtn title="Back" icon="arrow-left fa-lg" onClick={this.props.onClickBack} disabled={!this.props.page.canGoBack} />
       <BrowserNavbarBtn title="Forward" icon="arrow-right fa-lg" onClick={this.props.onClickForward} disabled={!this.props.page.canGoForward} />
       <BrowserNavbarBtn title="Refresh" icon="refresh fa-lg" onClick={this.props.onClickRefresh} disabled={!this.props.page.canRefresh} />
+      {config.statusUrl && <BrowserNavbarBtn title="Status" icon="info fa-lg" onClick={this.props.onClickStatus} disabled={false} />}
       {config.logOutUrl && <BrowserNavbarBtn title="Log Out" icon="sign-out fa-lg" onClick={this.props.onClickLogOut} disabled={false} />}
       <div className="input-group">
         <BrowserNavbarLocation onEnterLocation={this.props.onEnterLocation} onChangeLocation={this.props.onChangeLocation} onContextMenu={this.props.onLocationContextMenu} page={this.props.page} />

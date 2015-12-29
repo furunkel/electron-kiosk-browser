@@ -191,6 +191,9 @@ var BrowserChrome = React.createClass({
     onClickLogOut: function () {
       this.logOut()
     },
+    onClickStatus: function () {
+      this.getPage().navigateTo(config.statusUrl)
+    },
     onClickBundles: function () {
       var location = urllib.parse(this.getWebView().getUrl()).path
       this.getPage().navigateTo('/bundles/view.html#'+location)
