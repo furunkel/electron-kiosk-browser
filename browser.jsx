@@ -5,6 +5,7 @@ var MenuItem = remote.require('menu-item')
 var clipboard = require('clipboard')
 var urllib = require('url')
 var config = require('./config')
+var session = require('electron').session;
 
 function createPageObject (location) {
   return {
@@ -21,6 +22,7 @@ function createPageObject (location) {
 
 var BrowserChrome = React.createClass({
   getInitialState: function () {
+    this.clearSessionData()
     return {
       pages: [createPageObject()],
       currentPageIndex: 0
@@ -68,15 +70,47 @@ var BrowserChrome = React.createClass({
     i = (typeof i == 'undefined') ? this.state.currentPageIndex : i
     return this.state.pages[i]
   },
+  clearSessionData: function () {
+    console.log("Clearing session data...")
 
+    var webContents = remote.getCurrentWebContents()
+    var ses = webContents.session
+
+    var removeCookie = function(cookie) {
+      var url = "http" + (cookie.secure ? "s" : "") 
+        + "://" 
+        + cookie.domain 
+        + cookie.path;
+
+      console.log('cookie delete : ', url, cookie.name)
+      ses.cookies.remove(url, cookie.name, function(error) {
+          if (error) throw error;
+      })
+    }
+
+    ses.cookies.get({}, function(error, cookies) {
+      for(var i = 0, l = cookies.length; i < l; i++) {
+        if (error) throw error;
+        for (var i = 0; i < cookies.length; i++) {
+          console.log('cookie delete : ', i)
+          removeCookie(cookies[i])
+        };
+      }
+    })
+    ses.clearCache(function () {})
+    ses.clearStorageData(function () {})
+    remote.getCurrentWebContents().clearHistory()
+    clipboard.clear()
+  },
   createTab: function (location) {
     this.state.pages.push(createPageObject(location))
     this.setState({ pages: this.state.pages, currentPageIndex: this.state.pages.length - 1 })
   },
   logOut: function () {
+    this.clearSessionData()
     var page = createPageObject();
     var state = this.setState({ pages: [page], currentPageIndex: 0})
-    this.getPage().navigateTo(config.logOutUrl || page.location)
+    this.getPage(0).navigateTo(config.logOutUrl || page.location)
     return state
   },
   closeTab: function (pageIndex) {
